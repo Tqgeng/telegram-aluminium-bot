@@ -1,0 +1,51 @@
+services:
+  pg:
+    image: postgres:16
+    env_file:
+      - ./fastapi-application/.env
+    environment:
+      POSTGRES_DB: ${FASTAPI__DB__DB}
+      POSTGRES_USER: ${FASTAPI__DB__USER}
+      POSTGRES_PASSWORD: ${FASTAPI__DB__PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+
+  bot:
+    build: .
+    env_file:
+      - ./fastapi-application/.env
+    depends_on:
+      pg:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  backend:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    ports:
+      - "8000:8000"
+    depends_on:
+      pg:
+        condition: service_healthy
+    env_file:
+      - ./fastapi-application/.env
+
+volumes:
+  pg_data:
+
+
+# cp fastapi-application/.env.example fastapi-application/.env

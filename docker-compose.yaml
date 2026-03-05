@@ -31,6 +31,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    working_dir: /app/fastapi-application
+    command: [ "python", "-m", "bot.main" ]
 
   backend:
     build:
@@ -46,3 +48,5 @@ services:
 
 volumes:
   pg_data:
+
+# cp fastapi-application/.env.example fastapi-application/.env
